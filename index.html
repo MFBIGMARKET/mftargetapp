@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MF BIGMARKET</title>
+
+    <link rel="manifest" href="manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+    
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
+
+    <style>
+        :root {
+            --md-sys-color-primary: #0b57d0;
+            --md-sys-color-on-primary: #ffffff;
+            --md-sys-color-primary-container: #d3e3fd;
+            --md-sys-color-on-primary-container: #041e49;
+            --md-sys-color-profit: #8e24aa;
+            --md-sys-color-background: #f0f2f5;
+            --md-sys-color-surface: #ffffff;
+            --md-sys-color-outline: #c4c7c5;
+            --md-sys-color-surface-variant: #e1e3e1;
+            
+            --radius-lg: 20px;
+            --nav-width: 260px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--md-sys-color-background);
+            color: #1f1f1f;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* --- Sidebar --- */
+        nav {
+            width: var(--nav-width);
+            background-color: var(--md-sys-color-surface);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--md-sys-color-surface-variant);
+            padding: 20px 12px;
+        }
+
+        .logo-area {
+            padding: 0 16px 30px 16px;
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--md-sys-color-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+            border-radius: 50px; color: #444; text-decoration: none; cursor: pointer;
+            font-weight: 500; font-size: 0.95rem; margin-bottom: 4px; transition: 0.2s;
+        }
+        .nav-item:hover { background-color: #f5f5f5; }
+        .nav-item.active { background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+        .nav-item span { font-size: 24px; }
+
+        /* --- Main --- */
+        main { flex: 1; display: flex; flex-direction: column; height: 100%; overflow-y: auto; position: relative; }
+
+        header { padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; min-height: 80px; }
+        h1 { font-size: 1.75rem; font-weight: 400; color: #1f1f1f; }
+
+        .header-controls { display: flex; gap: 12px; align-items: center; position: relative; }
+        
+        /* Control Groups */
+        .controls-group { display: none; gap: 12px; align-items: center; }
+        .controls-group.active { display: flex; }
+
+        /* --- Toggle --- */
+        .toggle-container-block { padding: 0 40px; }
+        .toggle-wrapper {
+            background-color: #e0e2e5; padding: 4px; border-radius: 50px;
+            display: inline-flex; position: relative; margin-bottom: 25px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .toggle-option {
+            position: relative; z-index: 1; padding: 8px 32px;
+            font-size: 0.9rem; font-weight: 500; color: #444; cursor: pointer;
+            transition: color 0.2s; text-align: center; min-width: 100px;
+        }
+        .toggle-option.active { color: #000; }
+        .toggle-bg {
+            position: absolute; top: 4px; left: 4px; height: calc(100% - 8px);
+            background-color: white; border-radius: 50px;
+            transition: transform 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15); width: 100px;
+        }
+
+        /* --- Inputs --- */
+        .custom-trigger {
+            background: var(--md-sys-color-surface); padding: 10px 20px; border-radius: 50px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px;
+            cursor: pointer; user-select: none; transition: 0.2s; min-width: 180px; justify-content: space-between;
+        }
+        .custom-trigger:hover { background-color: #f8f9fa; }
+        
+        .month-nav-simple {
+            background: var(--md-sys-color-surface); border-radius: 50px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; padding: 4px;
+            min-width: 200px; justify-content: space-between;
+        }
+        .mns-btn {
+            border: none; background: none; width: 36px; height: 36px;
+            border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #444;
+        }
+        .mns-btn:hover { background-color: #f0f0f0; }
+        .mns-label { padding: 0 15px; font-weight: 500; font-size: 0.95rem; text-align: center; flex: 1; }
+
+        .icon-btn {
+            background: var(--md-sys-color-surface); border: none; width: 44px; height: 44px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); color: #444; transition: 0.2s;
+        }
+        .icon-btn:hover { background-color: var(--md-sys-color-primary-container); }
+
+        /* --- Views --- */
+        .view-section { padding: 0 40px 40px 40px; display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .dashboard-row { display: grid; grid-template-columns: 350px 1fr; gap: 24px; margin-bottom: 24px; }
+        .section-title { font-size: 1rem; color: #555; margin-bottom: 10px; font-weight: 500; }
+        .dept-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+        .card { background: var(--md-sys-color-surface); border-radius: var(--radius-lg); padding: 25px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .ring-card { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 350px; }
+        
+        .mini-ring-container { position: relative; width: 140px; height: 140px; margin: 0 auto 15px auto; }
+        .mini-percent { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: 500; }
+        .mini-ring { stroke-width: 12; }
+        .mini-bg-ring { stroke-width: 12; stroke: #eff1f4; }
+        .mini-dash { stroke-dasharray: 377; stroke-dashoffset: 377; } 
+
+        .progress-container { position: relative; width: 200px; height: 200px; }
+        svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+        circle { fill: none; stroke-width: 18; stroke-linecap: round; }
+        .bg-ring { stroke: #eff1f4; }
+        .progress-ring { stroke: var(--md-sys-color-primary); stroke-dasharray: 630; stroke-dashoffset: 630; transition: stroke-dashoffset 1s ease-in-out, stroke 0.5s ease; }
+        .percentage-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; font-weight: 500; color: #1f1f1f; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
+        .stat-box { background: #f8f9fa; padding: 24px; border-radius: 16px; text-align: left; }
+        .stat-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #757575; margin-bottom: 8px; font-weight: 500; }
+        .stat-value { font-size: 1.8rem; font-weight: 400; color: #1f1f1f; }
+        .stat-value.blue { color: var(--md-sys-color-primary); }
+        .stat-value.purple { color: var(--md-sys-color-profit); }
+
+        /* --- Settings Modal --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal-box { background: var(--md-sys-color-surface); border-radius: 28px; width: 800px; max-width: 95%; height: 480px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; overflow: hidden; }
+        .modal-left { width: 55%; padding: 30px; border-right: 1px solid var(--md-sys-color-surface-variant); display: flex; flex-direction: column; }
+        .modal-right { width: 45%; padding: 40px; display: flex; flex-direction: column; justify-content: space-between; }
+        .modal-right h2 { font-size: 1.6rem; margin-bottom: 5px; font-weight: 400; }
+        .selected-date-text { color: #666; margin-bottom: 25px; font-size: 1rem; }
+        .input-label { display: block; font-size: 0.9rem; color: #555; margin-bottom: 8px; font-weight: 500; }
+        .profit-label { color: var(--md-sys-color-profit); }
+        .form-control { width: 100%; padding: 16px 20px; border: 1px solid var(--md-sys-color-outline); border-radius: 12px; font-size: 1.1rem; margin-bottom: 30px; transition: 0.2s; }
+        .form-control:focus { outline: 2px solid var(--md-sys-color-primary); border-color: transparent; }
+        .dept-input-group { margin-bottom: 15px; } .dept-input-group .form-control { margin-bottom: 0; }
+        .modal-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+        .btn-text { background: none; border: none; color: var(--md-sys-color-primary); font-weight: 500; padding: 10px 20px; cursor: pointer; border-radius: 50px; }
+        .btn-primary { background-color: var(--md-sys-color-primary); color: white; border: none; padding: 10px 24px; border-radius: 50px; font-size: 1rem; font-weight: 500; cursor: pointer; }
+        .save-feedback { font-size: 0.85rem; color: #137a2d; font-weight: 500; opacity: 0; transition: opacity 0.3s; }
+
+        /* Calendar */
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+        .cal-day-name { font-size: 0.75rem; color: #888; margin-bottom: 8px; }
+        .cal-date { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.85rem; cursor: pointer; border-radius: 12px; position: relative; transition: 0.2s; border: 1px solid transparent; }
+        .cal-date:hover { filter: brightness(0.95); }
+        .cal-date.empty { cursor: default; pointer-events: none; }
+        .cal-date.selected { border: 2px solid var(--md-sys-color-primary); font-weight: 700; }
+        .has-target-dot { width: 4px; height: 4px; background-color: #444; border-radius: 50%; position: absolute; bottom: 4px; opacity: 0.6; }
+        .calendar-popover { position: absolute; top: 60px; right: 0; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); width: 320px; z-index: 50; display: none; }
+        .calendar-popover.active { display: block; animation: popIn 0.2s ease-out; }
+        @keyframes popIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .bg-red { background: linear-gradient(135deg, #ffffff 0%, #ffebee 100%); color: #b3261e; }
+        .bg-orange { background: linear-gradient(135deg, #ffffff 0%, #fff8e1 100%); color: #e68c00; }
+        .bg-blue { background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%); color: #0b57d0; }
+        .bg-green { background: linear-gradient(135deg, #ffffff 0%, #e8f5e9 100%); color: #137a2d; }
+
+        .hide-grid .calendar-grid { display: none; }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            /* 1. Reduced Bottom Bar Height (60px) */
+            nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background-color: #ffffff; box-shadow: 0 -2px 8px rgba(0,0,0,0.06); flex-direction: row; justify-content: space-evenly; align-items: center; padding: 0; border-right: none; z-index: 100; }
+            .logo-area { display: none; }
+            .nav-item { flex-direction: column; background-color: transparent !important; color: #757575; font-size: 0.7rem; padding: 4px; gap: 2px; border-radius: 0; margin: 0; }
+            .nav-item span { font-size: 20px; padding: 4px 16px; border-radius: 16px; transition: 0.2s; }
+            .nav-item.active { color: #1f1f1f; font-weight: 600; }
+            .nav-item.active span { background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+            main { padding-bottom: 70px; order: 1; }
+            header { padding: 15px 20px 5px 20px; flex-direction: column; align-items: stretch; min-height: auto; }
+            h1 { display: none; }
+            
+            /* 2. Top Header Mobile Logic */
+            .header-controls { width: 100%; }
+            .controls-group.active { width: 100%; justify-content: space-between; gap: 12px; }
+            .custom-trigger { flex: 1; padding: 10px 16px; }
+            
+            #deptControls.active { display: flex; width: 100%; gap: 12px; }
+            #deptControls .month-nav-simple { flex: 1; justify-content: space-between; }
+            
+            .toggle-container-block { padding: 10px 20px; }
+            .toggle-wrapper { width: 100%; display: flex; margin-bottom: 10px; }
+            .toggle-option { flex: 1; min-width: 0; padding: 10px 0; }
+            .toggle-bg { width: 33.33%; }
+            .view-section { padding: 10px 20px 20px 20px; }
+            .dashboard-row { grid-template-columns: 1fr; margin-bottom: 40px; }
+            .dept-grid { grid-template-columns: 1fr; } 
+            .modal-box { flex-direction: column; height: auto; width: 90%; max-height: 90vh; overflow-y: auto; }
+            .modal-left, .modal-right { width: 100%; padding: 20px; }
+            .calendar-popover { right: 20px; top: 70px; width: calc(100% - 40px); }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo-area">
+            <span class="material-symbols-rounded">track_changes</span>
+            MF BIGMARKET
+        </div>
+        <div class="nav-item active" onclick="switchView('daily', this)">
+            <span class="material-symbols-rounded">calendar_today</span>
+            Daily
+        </div>
+        <div class="nav-item" onclick="switchView('monthly', this)">
+            <span class="material-symbols-rounded">calendar_month</span>
+            Monthly
+        </div>
+        <div class="nav-item" onclick="switchView('department', this)">
+            <span class="material-symbols-rounded">category</span>
+            Department
+        </div>
+    </nav>
+
+    <main>
+        
+        <header>
+            <h1 id="pageTitle">Daily Dashboard</h1>
+            <div class="header-controls">
+                
+                <!-- DAILY CONTROLS -->
+                <div id="dailyControls" class="controls-group active">
+                    <div class="custom-trigger" onclick="toggleDashboardCalendar()">
+                        <span style="color: var(--md-sys-color-primary);" class="material-symbols-rounded">calendar_today</span>
+                        <span id="triggerDateLabel">Select Date</span>
+                        <span class="material-symbols-rounded">arrow_drop_down</span>
+                    </div>
+
+                    <div id="dashboardCalendarPopover" class="calendar-popover">
+                        <div class="calendar-header">
+                            <div class="current-month" id="dashCalMonthYear"></div>
+                            <div style="display:flex; gap: 5px;">
+                                <button class="month-nav-btn" onclick="changeDashMonth(-1)"><span class="material-symbols-rounded">chevron_left</span></button>
+                                <button class="month-nav-btn" onclick="changeDashMonth(1)"><span class="material-symbols-rounded">chevron_right</span></button>
+                            </div>
+                        </div>
+                        <div class="calendar-grid"><div class="cal-day-name">S</div><div class="cal-day-name">M</div><div class="cal-day-name">T</div><div class="cal-day-name">W</div><div class="cal-day-name">T</div><div class="cal-day-name">F</div><div class="cal-day-name">S</div></div>
+                        <div class="calendar-grid" id="dashCalDates"></div>
+                    </div>
+
+                    <button class="icon-btn" onclick="openSettingsModal()" title="Set Daily Targets">
+                        <span class="material-symbols-rounded">settings</span>
+                    </button>
+                </div>
+
+                <!-- MONTHLY CONTROLS -->
+                <div id="monthlyControls" class="controls-group">
+                    <div class="month-nav-simple" style="flex:1; justify-content:space-between;">
+                        <button class="mns-btn" onclick="changeGlobalMonth(-1)"><span class="material-symbols-rounded">chevron_left</span></button>
+                        <div class="mns-label" id="monthlyLabel">Month Year</div>
+                        <button class="mns-btn" onclick="changeGlobalMonth(1)"><span class="material-symbols-rounded">chevron_right</span></button>
+                    </div>
+                </div>
+                
+                <!-- DEPARTMENT CONTROLS -->
+                <div id="deptControls" class="controls-group">
+                    <div class="month-nav-simple">
+                        <button class="mns-btn" onclick="changeGlobalMonth(-1)"><span class="material-symbols-rounded">chevron_left</span></button>
+                        <div class="mns-label" id="deptLabel">Month Year</div>
+                        <button class="mns-btn" onclick="changeGlobalMonth(1)"><span class="material-symbols-rounded">chevron_right</span></button>
+                    </div>
+                     <button class="icon-btn" onclick="openSettingsModal()" title="Set Monthly Dept Targets">
+                        <span class="material-symbols-rounded">settings</span>
+                    </button>
+                </div>
+
+            </div>
+        </header>
+
+        <div class="toggle-container-block">
+            <div class="toggle-wrapper">
+                <div class="toggle-bg" id="toggleBg"></div>
+                <div class="toggle-option active" id="opt-STORE" onclick="setContext('STORE', 0)">Store</div>
+                <div class="toggle-option" id="opt-UNNI" onclick="setContext('UNNI', 1)">Unni</div>
+                <div class="toggle-option" id="opt-RIYAS" onclick="setContext('RIYAS', 2)">Riyas</div>
+            </div>
+        </div>
+
+        <div id="view-daily" class="view-section active">
+            <div class="section-title">Sales Performance</div>
+            <div class="dashboard-row">
+                <div class="card ring-card">
+                    <div class="progress-container">
+                        <svg><circle class="bg-ring" cx="100" cy="100" r="90"></circle><circle class="progress-ring" id="ring_daily_sales" cx="100" cy="100" r="90"></circle></svg>
+                        <div class="percentage-text" id="percent_daily_sales">0%</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="stats-grid">
+                        <div class="stat-box"><div class="stat-label">Sales Achieved</div><div class="stat-value blue" id="achieved_daily_sales">₹0</div></div>
+                        <div class="stat-box"><div class="stat-label">Sales Target</div><div class="stat-value" id="target_daily_sales">₹0</div></div>
+                        <div class="stat-box"><div class="stat-label">Balance</div><div class="stat-value" id="balance_daily_sales">₹0</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="section-title">Profit Performance</div>
+            <div class="dashboard-row">
+                <div class="card ring-card">
+                    <div class="progress-container">
+                        <svg><circle class="bg-ring" cx="100" cy="100" r="90"></circle><circle class="progress-ring" id="ring_daily_profit" cx="100" cy="100" r="90"></circle></svg>
+                        <div class="percentage-text" id="percent_daily_profit">0%</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="stats-grid">
+                        <div class="stat-box"><div class="stat-label">Profit Earned</div><div class="stat-value purple" id="achieved_daily_profit">₹0</div></div>
+                        <div class="stat-box"><div class="stat-label">Profit Target</div><div class="stat-value" id="target_daily_profit">₹0</div></div>
+                        <div class="stat-box"><div class="stat-label">Balance</div><div class="stat-value" id="balance_daily_profit">₹0</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-monthly" class="view-section">
+            <div class="section-title">Monthly Sales</div>
+            <div class="dashboard-row">
+                <div class="card ring-card">
+                    <div class="progress-container">
+                        <svg><circle class="bg-ring" cx="100" cy="100" r="90"></circle><circle class="progress-ring" id="ring_monthly_sales" cx="100" cy="100" r="90"></circle></svg>
+                        <div class="percentage-text" id="percent_monthly_sales">0%</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="stats-grid">
+                        <div class="stat-box"><div class="stat-label">Sales Achieved</div><div class="stat-value blue" id="achieved_monthly_sales">₹0</div></div>
+                        <div class="stat-box"><div class="stat-label">Cumulative Target</div><div class="stat-value" id="target_monthly_sales">₹0</div></div>
+                        <div class="stat-box"><div class="stat-label">Balance</div><div class="stat-value" id="balance_monthly_sales">₹0</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="section-title">Monthly Profit</div>
+            <div class="dashboard-row">
+                <div class="card ring-card">
+                    <div class="progress-container">
+                        <svg><circle class="bg-ring" cx="100" cy="100" r="90"></circle><circle class="progress-ring" id="ring_monthly_profit" cx="100" cy="100" r="90"></circle></svg>
+                        <div class="percentage-text" id="percent_monthly_profit">0%</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="stats-grid">
+                        <div class="stat-box"><div class="stat-label">Profit Earned</div><div class="stat-value purple" id="achieved_monthly_profit">₹0</div></div>
+                        <div class="stat-box"><div class="stat-label">Cumulative Target</div><div class="stat-value" id="target_monthly_profit">₹0</div></div>
+                        <div class="stat-box"><div class="stat-label">Balance</div><div class="stat-value" id="balance_monthly_profit">₹0</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-department" class="view-section">
+            <div class="dept-grid">
+                <div class="card">
+                    <h3 style="text-align:center; margin-bottom: 20px; color: #444;">FOOD</h3>
+                    <div class="mini-ring-container">
+                        <svg><circle class="mini-bg-ring" cx="70" cy="70" r="60"></circle><circle class="progress-ring mini-ring" id="ring_dept_food" cx="70" cy="70" r="60"></circle></svg>
+                        <div class="mini-percent" id="pct_dept_food">0%</div>
+                    </div>
+                    <div class="stat-label">Achieved: <span style="color:#0b57d0" id="ach_dept_food">₹0</span></div>
+                    <div class="stat-label">Target: <span id="tgt_dept_food">₹0</span></div>
+                </div>
+                <div class="card">
+                    <h3 style="text-align:center; margin-bottom: 20px; color: #444;">NON FOOD</h3>
+                    <div class="mini-ring-container">
+                        <svg><circle class="mini-bg-ring" cx="70" cy="70" r="60"></circle><circle class="progress-ring mini-ring" id="ring_dept_nonfood" cx="70" cy="70" r="60"></circle></svg>
+                        <div class="mini-percent" id="pct_dept_nonfood">0%</div>
+                    </div>
+                    <div class="stat-label">Achieved: <span style="color:#0b57d0" id="ach_dept_nonfood">₹0</span></div>
+                    <div class="stat-label">Target: <span id="tgt_dept_nonfood">₹0</span></div>
+                </div>
+                <div class="card">
+                    <h3 style="text-align:center; margin-bottom: 20px; color: #444;">REPACK</h3>
+                    <div class="mini-ring-container">
+                        <svg><circle class="mini-bg-ring" cx="70" cy="70" r="60"></circle><circle class="progress-ring mini-ring" id="ring_dept_repack" cx="70" cy="70" r="60"></circle></svg>
+                        <div class="mini-percent" id="pct_dept_repack">0%</div>
+                    </div>
+                    <div class="stat-label">Achieved: <span style="color:#0b57d0" id="ach_dept_repack">₹0</span></div>
+                    <div class="stat-label">Target: <span id="tgt_dept_repack">₹0</span></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-left" id="modalLeftContent">
+                <!-- Toggle between Date and Weekly -->
+                <div style="display:flex; gap:10px; margin-bottom:20px; background:#f0f0f0; padding:5px; border-radius:50px;">
+                    <button id="tabDate" class="btn-primary" style="flex:1; border-radius:50px;" onclick="setSettingsMode('date')">Specific Date</button>
+                    <button id="tabWeekly" class="btn-text" style="flex:1; border-radius:50px;" onclick="setSettingsMode('weekly')">Weekly Pattern</button>
+                </div>
+
+                <div id="calendarView">
+                    <div class="calendar-header">
+                        <div class="current-month" id="calMonthYear"></div>
+                        <div style="display:flex; gap: 5px;">
+                            <button class="month-nav-btn" onclick="changeMonth(-1)"><span class="material-symbols-rounded">chevron_left</span></button>
+                            <button class="month-nav-btn" onclick="changeMonth(1)"><span class="material-symbols-rounded">chevron_right</span></button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid"><div class="cal-day-name">S</div><div class="cal-day-name">M</div><div class="cal-day-name">T</div><div class="cal-day-name">W</div><div class="cal-day-name">T</div><div class="cal-day-name">F</div><div class="cal-day-name">S</div></div>
+                    <div class="calendar-grid" id="calDates"></div>
+                </div>
+
+                <div id="weeklyView" style="display:none;">
+                    <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">Select a day to set a recurring target:</p>
+                    <div id="weeklyDayList" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <!-- Days will be generated here -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-right">
+                <div style="margin-bottom: auto;">
+                    <h2 id="modalTitle">Set Target</h2>
+                    <p class="selected-date-text" id="modalDateLabel">Target for: <b id="settingsSelectedDateDisplay">--</b></p>
+                </div>
+                
+                <div id="inputContainer"></div>
+
+                <div class="modal-actions">
+                    <div id="saveFeedback" class="save-feedback">Saved!</div>
+                    <button class="btn-text" onclick="closeSettingsModal()">Close</button>
+                    <button class="btn-primary" onclick="saveSettingsTarget()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   <!-- Replace your existing <script> section with this -->
+<script type="module">
+    // --- FIREBASE IMPORTS ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // --- FIREBASE CONFIGURATION ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyCj-BQ7WSqd0wDlBnXo8IJkxASSRZvNGYM",
+        authDomain: "target-app-575e8.firebaseapp.com",
+        projectId: "target-app-575e8",
+        storageBucket: "target-app-575e8.firebasestorage.app",
+        messagingSenderId: "176478111344",
+        appId: "1:176478111344:web:6a964b07abdda1d10bd6b5"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // --- APP STATE ---
+    let rawData = [];      // Now synced from Firestore 'sales' collection
+    let targetsData = {};  // Now synced from Firestore 'targets' collection
+    
+    let currentView = "daily"; 
+    let currentContext = "STORE"; 
+    let dashboardDate = ""; 
+    let dashboardMonth = new Date(); 
+    let calCurrentDate = new Date(); 
+    let calSelectedDateStr = ""; 
+    let calSelectedMonthStr = ""; 
+    let dashCalCurrentDate = new Date();
+
+    // --- FIRESTORE SYNC LOGIC ---
+
+    // 1. Sync Sales Data (ERP Data)
+    onSnapshot(collection(db, "sales"), (snapshot) => {
+        rawData = snapshot.docs.map(doc => doc.data());
+        updateUI();
+    });
+
+    // 2. Sync Targets
+    onSnapshot(collection(db, "targets"), (snapshot) => {
+        snapshot.forEach(doc => {
+            targetsData[doc.id] = doc.data();
+        });
+        updateUI();
+    });
+
+    // --- INITIALIZATION ---
+    window.onload = function() {
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        dashboardDate = yesterday.toISOString().split('T')[0];
+        dashboardMonth = new Date(today);
+
+        updateTriggerLabel(); 
+        updateMonthlyLabel();
+        updateUI();
+        
+        document.addEventListener('click', function(event) {
+            const popover = document.getElementById('dashboardCalendarPopover');
+            const trigger = document.querySelector('.custom-trigger');
+            if (popover && !popover.contains(event.target) && !trigger.contains(event.target)) {
+                popover.classList.remove('active');
+            }
+        });
+    };
+
+    // --- CORE LOGIC (Modified for Firestore) ---
+
+    function getTargetKeys(date, dept = null) {
+        let base = currentContext;
+        if(dept) return { sales: `${base}_${dept}_${date}` };
+        return { sales: `${base}_${date}`, profit: `${base}_profit_${date}` };
+    }
+
+    // Helper to read from our local targetsData object
+    function getStoredTarget(key) {
+        return targetsData[key] ? targetsData[key].value : 0;
+    }
+
+    window.saveSettingsTarget = async function() {
+        const fb = document.getElementById('saveFeedback');
+        
+        try {
+            if(currentView === 'department') {
+                const depts = ['FOOD', 'NON FOOD', 'REPACK'];
+                for (const dept of depts) {
+                    const amt = document.getElementById(`input_${dept}`).value;
+                    const key = `${currentContext}_${dept}_${calSelectedMonthStr}`;
+                    await setDoc(doc(db, "targets", key), { value: parseFloat(amt) || 0 });
+                }
+            } else {
+                if(!calSelectedDateStr) return;
+                const keys = getTargetKeys(calSelectedDateStr);
+                const sAmt = document.getElementById('settingsTargetInput').value;
+                const pAmt = document.getElementById('settingsProfitTargetInput').value;
+                
+                await setDoc(doc(db, "targets", keys.sales), { value: parseFloat(sAmt) || 0 });
+                await setDoc(doc(db, "targets", keys.profit), { value: parseFloat(pAmt) || 0 });
+            }
+            
+            fb.style.opacity = '1'; 
+            setTimeout(() => fb.style.opacity = '0', 2000);
+            renderSettingsCalendar();
+        } catch (e) {
+            console.error("Error saving target: ", e);
+            alert("Error saving to Firestore. Check console.");
+        }
+    };
+
+    // --- UI UPDATES (Stay the same, but use new data sources) ---
+
+    window.updateUI = function() {
+        if(currentView === 'daily') updateDailyView();
+        else if(currentView === 'monthly') updateMonthlyView();
+        else updateDepartmentView();
+        if(document.getElementById('dashboardCalendarPopover').classList.contains('active')) renderDashboardCalendar();
+    };
+
+    function updateDailyView() {
+        const metrics = getMetrics(dashboardDate);
+        const keys = getTargetKeys(dashboardDate);
+        const sTarget = getStoredTarget(keys.sales);
+        const pTarget = getStoredTarget(keys.profit);
+        renderStats('daily_sales', metrics.sales, sTarget);
+        renderStats('daily_profit', metrics.profit, pTarget);
+    }
+
+    function updateMonthlyView() {
+        const totals = getMonthlyTotals();
+        renderStats('monthly_sales', totals.sales, totals.sTarget);
+        renderStats('monthly_profit', totals.profit, totals.pTarget);
+    }
+
+    function updateDepartmentView() {
+        const depts = ['FOOD', 'NON FOOD', 'REPACK']; const ids = ['food', 'nonfood', 'repack'];
+        depts.forEach((dept, index) => {
+            const totals = getMonthlyTotals(dept, true);
+            const uiId = ids[index];
+            document.getElementById(`ach_dept_${uiId}`).innerText = formatCurrency(totals.sales);
+            document.getElementById(`tgt_dept_${uiId}`).innerText = formatCurrency(totals.sTarget);
+            
+            let pct = totals.sTarget > 0 ? Math.min((totals.sales / totals.sTarget) * 100, 100) : (totals.sales > 0 ? 100 : 0);
+            document.getElementById(`pct_dept_${uiId}`).innerText = (totals.sTarget > 0 ? ((totals.sales / totals.sTarget) * 100).toFixed(0) : (totals.sales > 0 ? "100" : "0")) + "%";
+            animateRing(`ring_dept_${uiId}`, pct);
+        });
+    }
+
+    function getMonthlyTotals(dept = null, isDeptView = false) {
+        const year = dashboardMonth.getFullYear(); const month = dashboardMonth.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const monthStr = `${year}-${String(month+1).padStart(2, '0')}`;
+        let agg = { sales: 0, profit: 0, sTarget: 0, pTarget: 0 };
+        
+        if(isDeptView) {
+            const key = `${currentContext}_${dept}_${monthStr}`;
+            agg.sTarget = getStoredTarget(key);
+        }
+        for(let i=1; i<=daysInMonth; i++) {
+            const dayStr = `${year}-${String(month+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            const m = getMetrics(dayStr, dept);
+            agg.sales += m.sales; agg.profit += m.profit;
+            if(!isDeptView) {
+                const keys = getTargetKeys(dayStr);
+                agg.sTarget += getStoredTarget(keys.sales);
+                agg.pTarget += getStoredTarget(keys.profit);
+            }
+        }
+        return agg;
+    }
+
+    window.getMetrics = function(date, dept = null) {
+        let filtered = rawData.filter(r => r.date === date && r.amount > 0);
+        if(currentContext !== 'STORE') filtered = filtered.filter(r => r.ORDER_TAKEN_BY === currentContext);
+        if(dept) filtered = filtered.filter(r => r.DEPTNAME === dept);
+        const sales = filtered.reduce((sum, r) => sum + r.amount, 0);
+        const profit = filtered.reduce((sum, r) => sum + r.MARGIN_AMT, 0);
+        return { sales, profit };
+    };
+
+    // --- NAVIGATION & UI HELPERS (Binding to window for HTML access) ---
+
+    window.switchView = function(viewName, navEl) {
+        currentView = viewName;
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); navEl.classList.add('active');
+        document.querySelectorAll('.controls-group').forEach(el => el.classList.remove('active'));
+        if(viewName === 'daily') document.getElementById('dailyControls').classList.add('active');
+        else if (viewName === 'department') document.getElementById('deptControls').classList.add('active');
+        else document.getElementById('monthlyControls').classList.add('active');
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.getElementById(`view-${viewName}`).classList.add('active');
+        const titles = { 'daily': 'Daily Dashboard', 'monthly': 'Monthly Dashboard', 'department': 'Department Overview' };
+        document.getElementById('pageTitle').innerText = titles[viewName];
+        updateUI();
+    };
+
+    window.setContext = function(ctx, index) {
+        currentContext = ctx;
+        document.querySelectorAll('.toggle-option').forEach(el => el.classList.remove('active'));
+        document.getElementById(`opt-${ctx}`).classList.add('active');
+        const bg = document.getElementById('toggleBg');
+        bg.style.transform = `translateX(${index * 100}%)`;
+        updateUI();
+    };
+
+    window.openSettingsModal = function() {
+        calCurrentDate = new Date(); 
+        if(currentView === 'department') { 
+            calCurrentDate = new Date(dashboardMonth); 
+            calSelectedMonthStr = `${calCurrentDate.getFullYear()}-${String(calCurrentDate.getMonth()+1).padStart(2,'0')}`; 
+        } else { 
+            calSelectedDateStr = dashboardDate; 
+        }
+        let label = currentContext === 'STORE' ? 'Store' : (currentContext === 'UNNI' ? 'Unni' : 'Riyas');
+        document.getElementById('modalTitle').innerText = `Set Target: ${label}`;
+        const container = document.getElementById('inputContainer'); container.innerHTML = "";
+        const modalLeft = document.getElementById('modalLeftContent');
+
+        if(currentView === 'department') {
+            modalLeft.classList.add('hide-grid'); document.getElementById('modalDateLabel').style.display = 'none';
+            ['FOOD', 'NON FOOD', 'REPACK'].forEach(dept => {
+                container.innerHTML += `<div class="dept-input-group"><label class="input-label">${dept} (Monthly Sales)</label><input type="number" id="input_${dept}" class="form-control" placeholder="0"></div>`;
+            });
+        } else {
+            modalLeft.classList.remove('hide-grid'); document.getElementById('modalDateLabel').style.display = 'block';
+            container.innerHTML = `
+                <label class="input-label">Sales Target (₹)</label><input type="number" id="settingsTargetInput" class="form-control" placeholder="0">
+                <label class="input-label profit-label">Profit Target (₹)</label><input type="number" id="settingsProfitTargetInput" class="form-control" placeholder="0">
+            `;
+        }
+        renderSettingsCalendar(); 
+        loadTargetForSelection(); 
+        document.getElementById('settingsModal').classList.add('open');
+    };
+
+    window.loadTargetForSelection = function() {
+        if(currentView === 'department') {
+            ['FOOD', 'NON FOOD', 'REPACK'].forEach(dept => {
+                const key = `${currentContext}_${dept}_${calSelectedMonthStr}`;
+                const val = getStoredTarget(key);
+                const el = document.getElementById(`input_${dept}`); 
+                if(el) el.value = val || '';
+            });
+        } else {
+            document.getElementById('settingsSelectedDateDisplay').innerText = calSelectedDateStr;
+            const keys = getTargetKeys(calSelectedDateStr);
+            const sEl = document.getElementById('settingsTargetInput'); 
+            const pEl = document.getElementById('settingsProfitTargetInput');
+            if(sEl) sEl.value = getStoredTarget(keys.sales) || ''; 
+            if(pEl) pEl.value = getStoredTarget(keys.profit) || '';
+        }
+        document.getElementById('saveFeedback').style.opacity = '0';
+    };
+
+    // --- RE-BINDING REMAINING UI FUNCTIONS ---
+    window.changeGlobalMonth = (step) => { dashboardMonth.setMonth(dashboardMonth.getMonth() + step); updateMonthlyLabel(); updateUI(); };
+    window.changeMonth = (step) => { calCurrentDate.setMonth(calCurrentDate.getMonth() + step); if(currentView === 'department') { calSelectedMonthStr = `${calCurrentDate.getFullYear()}-${String(calCurrentDate.getMonth()+1).padStart(2,'0')}`; loadTargetForSelection(); } renderSettingsCalendar(); };
+    window.changeDashMonth = (step) => { dashCalCurrentDate.setMonth(dashCalCurrentDate.getMonth() + step); renderDashboardCalendar(); };
+    window.toggleDashboardCalendar = () => { const popover = document.getElementById('dashboardCalendarPopover'); if(popover.classList.contains('active')) popover.classList.remove('active'); else { dashCalCurrentDate = new Date(dashboardDate); renderDashboardCalendar(); popover.classList.add('active'); } };
+    window.closeSettingsModal = () => document.getElementById('settingsModal').classList.remove('open');
+
+    // --- RENDER FUNCTIONS (UNMODIFIED FROM ORIGINAL) ---
+    function renderStats(suffix, achieved, target) {
+        document.getElementById(`achieved_${suffix}`).innerText = formatCurrency(achieved);
+        document.getElementById(`target_${suffix}`).innerText = formatCurrency(target);
+        let balance = target - achieved; if(balance < 0) balance = 0;
+        document.getElementById(`balance_${suffix}`).innerText = formatCurrency(balance);
+        let pct = target > 0 ? Math.min((achieved / target) * 100, 100) : (achieved > 0 ? 100 : 0);
+        document.getElementById(`percent_${suffix}`).innerText = (target > 0 ? ((achieved / target) * 100).toFixed(0) : (achieved > 0 ? "100" : "0")) + "%";
+        animateRing(`ring_${suffix}`, pct);
+    }
+
+    function formatCurrency(num) { return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(num); }
+    
+    function animateRing(id, percent) {
+        const circle = document.getElementById(id); if(!circle) return;
+        const radius = circle.r.baseVal.value; const circumference = radius * 2 * Math.PI;
+        circle.style.strokeDasharray = circumference;
+        circle.style.strokeDashoffset = circumference - (percent / 100) * circumference;
+        let color = percent >= 100 ? "#137a2d" : (percent >= 66 ? "#0b57d0" : (percent >= 33 ? "#e68c00" : "#b3261e"));
+        if(id.includes('profit')) { if(percent >= 100) color = "#6a1b9a"; else if(percent >= 66) color = "#8e24aa"; }
+        circle.style.stroke = color;
+    }
+
+    function updateMonthlyLabel() { 
+        const str = dashboardMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+        document.getElementById('monthlyLabel').innerText = str; 
+        document.getElementById('deptLabel').innerText = str; 
+    }
+    
+    function updateTriggerLabel() { document.getElementById('triggerDateLabel').innerText = new Date(dashboardDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }); }
+
+    function renderDashboardCalendar() {
+        const year = dashCalCurrentDate.getFullYear(); const month = dashCalCurrentDate.getMonth();
+        document.getElementById('dashCalMonthYear').innerText = new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' });
+        const daysInMonth = new Date(year, month + 1, 0).getDate(); const firstDay = new Date(year, month, 1).getDay();
+        const container = document.getElementById('dashCalDates'); container.innerHTML = "";
+        for(let i=0; i<firstDay; i++) container.appendChild(Object.assign(document.createElement('div'), {className: 'cal-date empty'}));
+        for(let i=1; i<=daysInMonth; i++) {
+            const dayDiv = document.createElement('div'); const cellDateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            dayDiv.className = "cal-date"; dayDiv.innerText = i;
+            if(cellDateStr === dashboardDate) dayDiv.classList.add('selected');
+            const keys = getTargetKeys(cellDateStr);
+            const target = getStoredTarget(keys.sales);
+            const metrics = getMetrics(cellDateStr);
+            if(target > 0) {
+                const dot = document.createElement('div'); dot.className = "has-target-dot"; dayDiv.appendChild(dot);
+                const percent = (metrics.sales / target) * 100;
+                dayDiv.classList.add(percent >= 100 ? 'bg-green' : (percent >= 66 ? 'bg-blue' : (percent >= 33 ? 'bg-orange' : 'bg-red')));
+            }
+            dayDiv.onclick = () => { dashboardDate = cellDateStr; updateTriggerLabel(); updateUI(); document.getElementById('dashboardCalendarPopover').classList.remove('active'); };
+            container.appendChild(dayDiv);
+        }
+    }
+
+    function renderSettingsCalendar() {
+        const year = calCurrentDate.getFullYear(); const month = calCurrentDate.getMonth();
+        document.getElementById('calMonthYear').innerText = new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' });
+        if(currentView === 'department') return;
+        const daysInMonth = new Date(year, month + 1, 0).getDate(); const firstDay = new Date(year, month, 1).getDay();
+        const container = document.getElementById('calDates'); container.innerHTML = "";
+        for(let i=0; i<firstDay; i++) container.appendChild(Object.assign(document.createElement('div'), {className: 'cal-date empty'}));
+        for(let i=1; i<=daysInMonth; i++) {
+            const dayDiv = document.createElement('div'); const cellDateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            dayDiv.className = "cal-date"; dayDiv.innerText = i;
+            if(cellDateStr === calSelectedDateStr) dayDiv.classList.add('selected');
+            const keys = getTargetKeys(cellDateStr);
+            if(getStoredTarget(keys.sales) || getStoredTarget(keys.profit)) { const dot = document.createElement('div'); dot.className = "has-target-dot"; dayDiv.appendChild(dot); }
+            dayDiv.onclick = () => { calSelectedDateStr = cellDateStr; renderSettingsCalendar(); loadTargetForSelection(); };
+            container.appendChild(dayDiv);
+        }
+    }
+</script>
+</body>
+</html>
