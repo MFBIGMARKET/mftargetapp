@@ -6,11 +6,11 @@
     <title>MF BIGMARKET</title>
 
     <link rel="manifest" href="manifest.json">
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
-</script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+      }
+    </script>
     
     <!-- Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -113,11 +113,6 @@
             cursor: pointer; user-select: none; transition: 0.2s; min-width: 180px; justify-content: space-between;
         }
         .custom-trigger:hover { background-color: #f8f9fa; }
-        /* Add these to your existing CSS */
-.item-actions { display: flex; gap: 5px; }
-.action-btn { background: none; border: none; cursor: pointer; color: #999; padding: 4px; border-radius: 50%; transition: 0.2s; display:flex; align-items:center; justify-content:center; }
-.action-btn:hover { background-color: #f0f0f0; color: #0b57d0; }
-.action-btn.delete:hover { color: #b3261e; background-color: #ffebee; }
         
         .month-nav-simple {
             background: var(--md-sys-color-surface); border-radius: 50px;
@@ -169,6 +164,45 @@
         .stat-value { font-size: 1.8rem; font-weight: 400; color: #1f1f1f; }
         .stat-value.blue { color: var(--md-sys-color-primary); }
         .stat-value.purple { color: var(--md-sys-color-profit); }
+
+        /* --- Item View Styles --- */
+        .item-card {
+            background: var(--md-sys-color-surface);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .item-title { font-weight: 700; color: #1f1f1f; font-size: 1rem; flex: 1; }
+        .item-dates { font-size: 0.75rem; color: #757575; }
+        .item-actions { display: flex; gap: 5px; margin-left: 10px; }
+        .action-btn { background: none; border: none; cursor: pointer; color: #999; padding: 4px; border-radius: 50%; transition: 0.2s; display:flex; align-items:center; justify-content:center; }
+        .action-btn:hover { background-color: #f0f0f0; color: #0b57d0; }
+        .action-btn.delete:hover { color: #b3261e; background-color: #ffebee; }
+
+        .linear-progress-container { margin-bottom: 15px; }
+        .linear-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px; }
+        .linear-bg { height: 8px; background: #eee; border-radius: 10px; overflow: hidden; position: relative; }
+        .linear-fill { height: 100%; transition: width 1s ease-in-out; border-radius: 10px; }
+
+        .search-results {
+            border: 1px solid var(--md-sys-color-outline);
+            max-height: 150px;
+            overflow-y: auto;
+            border-radius: 8px;
+            margin-top: -25px;
+            margin-bottom: 20px;
+            background: white;
+            display: none;
+        }
+        .search-item { padding: 10px; cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid #eee; }
+        .search-item:hover { background: #f0f4ff; }
 
         /* --- Settings Modal --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
@@ -261,6 +295,10 @@
             <span class="material-symbols-rounded">category</span>
             Department
         </div>
+        <div class="nav-item" onclick="switchView('item', this)">
+            <span class="material-symbols-rounded">inventory_2</span>
+            Item Target
+        </div>
     </nav>
 
     <main>
@@ -311,6 +349,13 @@
                         <button class="mns-btn" onclick="changeGlobalMonth(1)"><span class="material-symbols-rounded">chevron_right</span></button>
                     </div>
                      <button class="icon-btn" onclick="openSettingsModal()" title="Set Monthly Dept Targets">
+                        <span class="material-symbols-rounded">settings</span>
+                    </button>
+                </div>
+
+                <!-- ITEM CONTROLS (Placeholder) -->
+                <div id="itemControls" class="controls-group">
+                    <button class="icon-btn" onclick="openSettingsModal()" title="Item Settings">
                         <span class="material-symbols-rounded">settings</span>
                     </button>
                 </div>
@@ -429,15 +474,23 @@
             </div>
         </div>
 
+        <div id="view-item" class="view-section">
+            <div class="section-title">Item-Wise Performance</div>
+            <div id="itemTargetList">
+                <!-- Item Targets will load here -->
+            </div>
+        </div>
+
     </main>
 
     <div id="settingsModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-left" id="modalLeftContent">
-                <!-- Toggle between Date and Weekly -->
+                
                 <div style="display:flex; gap:10px; margin-bottom:20px; background:#f0f0f0; padding:5px; border-radius:50px;">
-                    <button id="tabDate" class="btn-primary" style="flex:1; border-radius:50px;" onclick="setSettingsMode('date')">Specific Date</button>
-                    <button id="tabWeekly" class="btn-text" style="flex:1; border-radius:50px;" onclick="setSettingsMode('weekly')">Weekly Pattern</button>
+                    <button id="tabDate" class="btn-primary" style="flex:1; border-radius:50px; font-size: 0.85rem;" onclick="setSettingsMode('date')">Specific Date</button>
+                    <button id="tabWeekly" class="btn-text" style="flex:1; border-radius:50px; font-size: 0.85rem;" onclick="setSettingsMode('weekly')">Weekly Pattern</button>
+                    <button id="tabItem" class="btn-text" style="flex:1; border-radius:50px; font-size: 0.85rem;" onclick="setSettingsMode('item')">Item Management</button>
                 </div>
 
                 <div id="calendarView">
@@ -453,11 +506,31 @@
                 </div>
 
                 <div id="weeklyView" style="display:none;">
-                    <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">Select a day to set a recurring target:</p>
-                    <div id="weeklyDayList" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                        <!-- Days will be generated here -->
+                    <p style="font-size:0.8rem; color:#666; margin-bottom:15px; padding-left: 5px;">Set a recurring target for every week:</p>
+                    <div id="weeklyDayList" style="display:flex; flex-direction: column; gap: 4px;">
                     </div>
                 </div>
+
+                <div id="itemSettingsView" style="display:none; padding-top: 10px;">
+                    <label class="input-label">1. Upload Item Master (CSV)</label>
+                    <input type="file" id="itemCsvUpload" accept=".csv" class="form-control" style="padding:10px; font-size: 0.9rem;">
+                    
+                    <label class="input-label">2. Search Product</label>
+                    <input type="text" id="itemSearchInput" class="form-control" placeholder="Type item name..." oninput="searchItems(this.value)">
+                    <div id="itemSearchResults" class="search-results"></div>
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div>
+                            <label class="input-label">Start Date</label>
+                            <input type="date" id="itemTargetStart" class="form-control">
+                        </div>
+                        <div>
+                            <label class="input-label">End Date</label>
+                            <input type="date" id="itemTargetEnd" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
             </div>
             <div class="modal-right">
                 <div style="margin-bottom: auto;">
@@ -476,13 +549,10 @@
         </div>
     </div>
 
-   <!-- Replace your existing <script> section with this -->
 <script type="module">
-    // --- FIREBASE IMPORTS ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // --- FIREBASE CONFIGURATION ---
     const firebaseConfig = {
         apiKey: "AIzaSyCj-BQ7WSqd0wDlBnXo8IJkxASSRZvNGYM",
         authDomain: "target-app-575e8.firebaseapp.com",
@@ -492,13 +562,14 @@
         appId: "1:176478111344:web:6a964b07abdda1d10bd6b5"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // --- APP STATE ---
-    let rawData = [];      // Now synced from Firestore 'sales' collection
-    let targetsData = {};  // Now synced from Firestore 'targets' collection
+    let rawData = [];      
+    let targetsData = {};  
+    let itemMaster = [];
+    let activeItemName = "";
+    let editingTargetId = null;
     
     let currentView = "daily"; 
     let currentContext = "STORE"; 
@@ -509,15 +580,14 @@
     let calSelectedMonthStr = ""; 
     let dashCalCurrentDate = new Date();
 
-    // --- FIRESTORE SYNC LOGIC ---
+    let settingsMode = 'date'; 
+    let selectedDayIndex = new Date().getDay();
 
-    // 1. Sync Sales Data (ERP Data)
     onSnapshot(collection(db, "sales"), (snapshot) => {
         rawData = snapshot.docs.map(doc => doc.data());
         updateUI();
     });
 
-    // 2. Sync Targets
     onSnapshot(collection(db, "targets"), (snapshot) => {
         snapshot.forEach(doc => {
             targetsData[doc.id] = doc.data();
@@ -525,7 +595,10 @@
         updateUI();
     });
 
-    // --- INITIALIZATION ---
+    onSnapshot(doc(db, "settings", "item_master"), (doc) => {
+        if(doc.exists()) itemMaster = doc.data().items;
+    });
+
     window.onload = function() {
         const today = new Date();
         const yesterday = new Date(today);
@@ -544,26 +617,94 @@
                 popover.classList.remove('active');
             }
         });
+
+        // CSV Listener
+        document.getElementById('itemCsvUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const text = event.target.result;
+                const lines = text.split('\n');
+                itemMaster = lines.slice(1).map(line => {
+                    const parts = line.split(',');
+                    return { code: parts[0], name: parts[1]?.trim() };
+                }).filter(item => item.name);
+                setDoc(doc(db, "settings", "item_master"), { items: itemMaster });
+                alert("Item Master Uploaded: " + itemMaster.length + " items.");
+            };
+            reader.readAsText(file);
+        });
     };
 
-    // --- CORE LOGIC (Modified for Firestore) ---
+    function getStoredTarget(context, dateStr, type = 'sales') {
+        const dateObj = new Date(dateStr);
+        const dayOfWeek = dateObj.getDay(); 
 
-    function getTargetKeys(date, dept = null) {
-        let base = currentContext;
-        if(dept) return { sales: `${base}_${dept}_${date}` };
-        return { sales: `${base}_${date}`, profit: `${base}_profit_${date}` };
+        const dateKey = type === 'sales' ? `${context}_${dateStr}` : `${context}_profit_${dateStr}`;
+        const weeklyKey = type === 'sales' ? `weekly_${context}_${dayOfWeek}` : `weekly_${context}_profit_${dayOfWeek}`;
+
+        if (targetsData[dateKey]) return targetsData[dateKey].value;
+        if (targetsData[weeklyKey]) return targetsData[weeklyKey].value;
+        return 0;
     }
 
-    // Helper to read from our local targetsData object
-    function getStoredTarget(key) {
+    function getStoredTargetRaw(key) {
         return targetsData[key] ? targetsData[key].value : 0;
     }
 
+    window.deleteItemTarget = async function(id) {
+        if(confirm("Are you sure you want to delete this target?")) {
+            await deleteDoc(doc(db, "item_targets", id));
+        }
+    };
+
+    window.editItemTarget = function(id, name, start, end, sTgt, pTgt) {
+        editingTargetId = id; 
+        
+        openSettingsModal(); 
+        setSettingsMode('item'); 
+
+        selectItemForTarget(name);
+        document.getElementById('itemTargetStart').value = start;
+        document.getElementById('itemTargetEnd').value = end;
+        document.getElementById('settingsTargetInput').value = sTgt;
+        document.getElementById('settingsProfitTargetInput').value = pTgt;
+        
+        document.querySelector('.modal-actions .btn-primary').innerText = "Update";
+    };
+
     window.saveSettingsTarget = async function() {
         const fb = document.getElementById('saveFeedback');
-        
         try {
-            if(currentView === 'department') {
+            if (settingsMode === 'item') {
+                const start = document.getElementById('itemTargetStart').value;
+                const end = document.getElementById('itemTargetEnd').value;
+                const sTarget = document.getElementById('settingsTargetInput').value;
+                const pTarget = document.getElementById('settingsProfitTargetInput').value;
+
+                if(!activeItemName || !start || !end) { alert("Select Item and Dates"); return; }
+
+                if (editingTargetId) {
+                    await deleteDoc(doc(db, "item_targets", editingTargetId));
+                    editingTargetId = null;
+                    document.querySelector('.modal-actions .btn-primary').innerText = "Save";
+                }
+
+                const targetId = `item_${currentContext}_${activeItemName}_${start}_${end}`.replace(/\s+/g, '_');
+                await setDoc(doc(db, "item_targets", targetId), {
+                    context: currentContext,
+                    itemName: activeItemName,
+                    startDate: start,
+                    endDate: end,
+                    salesTarget: parseFloat(sTarget) || 0,
+                    profitTarget: parseFloat(pTarget) || 0
+                });
+            } else if (settingsMode === 'weekly') {
+                const sAmt = document.getElementById('settingsTargetInput').value;
+                const pAmt = document.getElementById('settingsProfitTargetInput').value;
+                await setDoc(doc(db, "targets", `weekly_${currentContext}_${selectedDayIndex}`), { value: parseFloat(sAmt) || 0 });
+                await setDoc(doc(db, "targets", `weekly_${currentContext}_profit_${selectedDayIndex}`), { value: parseFloat(pAmt) || 0 });
+            } else if (currentView === 'department') {
                 const depts = ['FOOD', 'NON FOOD', 'REPACK'];
                 for (const dept of depts) {
                     const amt = document.getElementById(`input_${dept}`).value;
@@ -572,37 +713,140 @@
                 }
             } else {
                 if(!calSelectedDateStr) return;
-                const keys = getTargetKeys(calSelectedDateStr);
                 const sAmt = document.getElementById('settingsTargetInput').value;
                 const pAmt = document.getElementById('settingsProfitTargetInput').value;
-                
-                await setDoc(doc(db, "targets", keys.sales), { value: parseFloat(sAmt) || 0 });
-                await setDoc(doc(db, "targets", keys.profit), { value: parseFloat(pAmt) || 0 });
+                await setDoc(doc(db, "targets", `${currentContext}_${calSelectedDateStr}`), { value: parseFloat(sAmt) || 0 });
+                await setDoc(doc(db, "targets", `${currentContext}_profit_${calSelectedDateStr}`), { value: parseFloat(pAmt) || 0 });
             }
-            
-            fb.style.opacity = '1'; 
-            setTimeout(() => fb.style.opacity = '0', 2000);
-            renderSettingsCalendar();
-        } catch (e) {
-            console.error("Error saving target: ", e);
-            alert("Error saving to Firestore. Check console.");
-        }
+            fb.style.opacity = '1'; setTimeout(() => fb.style.opacity = '0', 2000);
+            if(settingsMode !== 'item') renderSettingsCalendar();
+        } catch (e) { console.error(e); }
     };
 
-    // --- UI UPDATES (Stay the same, but use new data sources) ---
+    window.setSettingsMode = function(mode) {
+        settingsMode = mode;
+        document.getElementById('calendarView').style.display = mode === 'date' ? 'block' : 'none';
+        document.getElementById('weeklyView').style.display = mode === 'weekly' ? 'block' : 'none';
+        document.getElementById('itemSettingsView').style.display = mode === 'item' ? 'block' : 'none';
+        
+        document.getElementById('tabDate').className = mode === 'date' ? 'btn-primary' : 'btn-text';
+        document.getElementById('tabWeekly').className = mode === 'weekly' ? 'btn-primary' : 'btn-text';
+        document.getElementById('tabItem').className = mode === 'item' ? 'btn-primary' : 'btn-text';
+        
+        if (mode === 'weekly') renderWeeklyDayList();
+        loadTargetForSelection();
+    };
+
+    function renderWeeklyDayList() {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const container = document.getElementById('weeklyDayList');
+        container.innerHTML = days.map((day, i) => `
+            <div class="nav-item ${selectedDayIndex === i ? 'active' : ''}" style="margin-bottom:2px;" onclick="selectWeeklyDay(${i})">
+                <span class="material-symbols-rounded" style="font-size:20px;">${selectedDayIndex === i ? 'radio_button_checked' : 'radio_button_unchecked'}</span>
+                ${day}
+            </div>
+        `).join('');
+    }
+
+    window.selectWeeklyDay = function(index) {
+        selectedDayIndex = index;
+        renderWeeklyDayList();
+        loadTargetForSelection();
+    };
+
+    window.searchItems = function(val) {
+        const resultsBox = document.getElementById('itemSearchResults');
+        if (val.length < 2) { resultsBox.style.display = 'none'; return; }
+        
+        const filtered = itemMaster.filter(i => i.name.toLowerCase().includes(val.toLowerCase())).slice(0, 10);
+        resultsBox.innerHTML = filtered.map(i => `<div class="search-item" onclick="selectItemForTarget('${i.name}')">${i.name}</div>`).join('');
+        resultsBox.style.display = 'block';
+    }
+
+    window.selectItemForTarget = function(name) {
+        activeItemName = name;
+        document.getElementById('itemSearchInput').value = name;
+        document.getElementById('itemSearchResults').style.display = 'none';
+        document.getElementById('settingsSelectedDateDisplay').innerText = name;
+    }
+
+    function updateItemView() {
+        onSnapshot(collection(db, "item_targets"), (snapshot) => {
+            const container = document.getElementById('itemTargetList');
+            container.innerHTML = "";
+            
+            if (snapshot.empty) {
+                container.innerHTML = "<div style='text-align:center; color:#999; margin-top:20px;'>No targets set. Go to settings to add one.</div>";
+                return;
+            }
+
+            snapshot.forEach(docSnap => {
+                const t = docSnap.data();
+                if (t.context !== currentContext) return;
+
+                // Calculate Achievement
+                const achieved = rawData.filter(r => 
+                    r.item_name === t.itemName && 
+                    r.date >= t.startDate && 
+                    r.date <= t.endDate &&
+                    (currentContext === 'STORE' || r.ORDER_TAKEN_BY === currentContext)
+                ).reduce((acc, curr) => ({
+                    sales: acc.sales + curr.amount,
+                    profit: acc.profit + curr.MARGIN_AMT
+                }), { sales: 0, profit: 0 });
+
+                const sPct = t.salesTarget > 0 ? Math.min((achieved.sales / t.salesTarget) * 100, 100) : 0;
+                const pPct = t.profitTarget > 0 ? Math.min((achieved.profit / t.profitTarget) * 100, 100) : 0;
+
+                container.innerHTML += `
+                    <div class="item-card">
+                        <div class="item-header">
+                            <div>
+                                <div class="item-title">${t.itemName}</div>
+                                <div class="item-dates">${t.startDate} to ${t.endDate}</div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="action-btn" onclick="editItemTarget('${docSnap.id}', '${t.itemName}', '${t.startDate}', '${t.endDate}', ${t.salesTarget}, ${t.profitTarget})">
+                                    <span class="material-symbols-rounded" style="font-size:20px">edit</span>
+                                </button>
+                                <button class="action-btn delete" onclick="deleteItemTarget('${docSnap.id}')">
+                                    <span class="material-symbols-rounded" style="font-size:20px">delete</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="linear-progress-container">
+                            <div class="linear-label">
+                                <span>Sales: ₹${achieved.sales.toLocaleString()} / ₹${t.salesTarget.toLocaleString()}</span>
+                                <span>${sPct.toFixed(0)}%</span>
+                            </div>
+                            <div class="linear-bg"><div class="linear-fill" style="width:${sPct}%; background:var(--md-sys-color-primary)"></div></div>
+                        </div>
+                        <div class="linear-progress-container">
+                            <div class="linear-label">
+                                <span style="color:var(--md-sys-color-profit)">Profit: ₹${achieved.profit.toLocaleString()} / ₹${t.profitTarget.toLocaleString()}</span>
+                                <span>${pPct.toFixed(0)}%</span>
+                            </div>
+                            <div class="linear-bg"><div class="linear-fill" style="width:${pPct}%; background:var(--md-sys-color-profit)"></div></div>
+                        </div>
+                    </div>
+                `;
+            });
+        });
+    }
 
     window.updateUI = function() {
         if(currentView === 'daily') updateDailyView();
         else if(currentView === 'monthly') updateMonthlyView();
-        else updateDepartmentView();
+        else if(currentView === 'department') updateDepartmentView();
+        else if(currentView === 'item') updateItemView();
+
         if(document.getElementById('dashboardCalendarPopover').classList.contains('active')) renderDashboardCalendar();
     };
 
     function updateDailyView() {
         const metrics = getMetrics(dashboardDate);
-        const keys = getTargetKeys(dashboardDate);
-        const sTarget = getStoredTarget(keys.sales);
-        const pTarget = getStoredTarget(keys.profit);
+        const sTarget = getStoredTarget(currentContext, dashboardDate, 'sales');
+        const pTarget = getStoredTarget(currentContext, dashboardDate, 'profit');
         renderStats('daily_sales', metrics.sales, sTarget);
         renderStats('daily_profit', metrics.profit, pTarget);
     }
@@ -634,17 +878,15 @@
         let agg = { sales: 0, profit: 0, sTarget: 0, pTarget: 0 };
         
         if(isDeptView) {
-            const key = `${currentContext}_${dept}_${monthStr}`;
-            agg.sTarget = getStoredTarget(key);
+            agg.sTarget = getStoredTargetRaw(`${currentContext}_${dept}_${monthStr}`);
         }
         for(let i=1; i<=daysInMonth; i++) {
             const dayStr = `${year}-${String(month+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
             const m = getMetrics(dayStr, dept);
             agg.sales += m.sales; agg.profit += m.profit;
             if(!isDeptView) {
-                const keys = getTargetKeys(dayStr);
-                agg.sTarget += getStoredTarget(keys.sales);
-                agg.pTarget += getStoredTarget(keys.profit);
+                agg.sTarget += getStoredTarget(currentContext, dayStr, 'sales');
+                agg.pTarget += getStoredTarget(currentContext, dayStr, 'profit');
             }
         }
         return agg;
@@ -659,18 +901,18 @@
         return { sales, profit };
     };
 
-    // --- NAVIGATION & UI HELPERS (Binding to window for HTML access) ---
-
     window.switchView = function(viewName, navEl) {
         currentView = viewName;
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); navEl.classList.add('active');
         document.querySelectorAll('.controls-group').forEach(el => el.classList.remove('active'));
         if(viewName === 'daily') document.getElementById('dailyControls').classList.add('active');
         else if (viewName === 'department') document.getElementById('deptControls').classList.add('active');
+        else if (viewName === 'item') document.getElementById('itemControls').classList.add('active');
         else document.getElementById('monthlyControls').classList.add('active');
+        
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         document.getElementById(`view-${viewName}`).classList.add('active');
-        const titles = { 'daily': 'Daily Dashboard', 'monthly': 'Monthly Dashboard', 'department': 'Department Overview' };
+        const titles = { 'daily': 'Daily Dashboard', 'monthly': 'Monthly Dashboard', 'department': 'Department Overview', 'item': 'Item Management' };
         document.getElementById('pageTitle').innerText = titles[viewName];
         updateUI();
     };
@@ -686,11 +928,27 @@
 
     window.openSettingsModal = function() {
         calCurrentDate = new Date(); 
+        // Reset to Save mode whenever opening modal
+        editingTargetId = null;
+        document.querySelector('.modal-actions .btn-primary').innerText = "Save";
+
         if(currentView === 'department') { 
             calCurrentDate = new Date(dashboardMonth); 
             calSelectedMonthStr = `${calCurrentDate.getFullYear()}-${String(calCurrentDate.getMonth()+1).padStart(2,'0')}`; 
+            setSettingsMode('date');
+            document.querySelector('[onclick="setSettingsMode(\'weekly\')"]').style.display = 'none';
+            document.querySelector('[onclick="setSettingsMode(\'item\')"]').style.display = 'none';
+        } else if (currentView === 'item') {
+            setSettingsMode('item');
+            document.querySelector('[onclick="setSettingsMode(\'date\')"]').style.display = 'none';
+            document.querySelector('[onclick="setSettingsMode(\'weekly\')"]').style.display = 'none';
+            document.querySelector('[onclick="setSettingsMode(\'item\')"]').style.display = 'block';
         } else { 
             calSelectedDateStr = dashboardDate; 
+            document.querySelector('[onclick="setSettingsMode(\'date\')"]').style.display = 'block';
+            document.querySelector('[onclick="setSettingsMode(\'weekly\')"]').style.display = 'block';
+            document.querySelector('[onclick="setSettingsMode(\'item\')"]').style.display = 'none';
+            setSettingsMode('date');
         }
         let label = currentContext === 'STORE' ? 'Store' : (currentContext === 'UNNI' ? 'Unni' : 'Riyas');
         document.getElementById('modalTitle').innerText = `Set Target: ${label}`;
@@ -702,6 +960,13 @@
             ['FOOD', 'NON FOOD', 'REPACK'].forEach(dept => {
                 container.innerHTML += `<div class="dept-input-group"><label class="input-label">${dept} (Monthly Sales)</label><input type="number" id="input_${dept}" class="form-control" placeholder="0"></div>`;
             });
+        } else if (currentView === 'item') {
+             // Handled by setSettingsMode('item')
+             modalLeft.classList.add('hide-grid');
+             container.innerHTML = `
+                <label class="input-label">Sales Target (₹)</label><input type="number" id="settingsTargetInput" class="form-control" placeholder="0">
+                <label class="input-label profit-label">Profit Target (₹)</label><input type="number" id="settingsProfitTargetInput" class="form-control" placeholder="0">
+            `;
         } else {
             modalLeft.classList.remove('hide-grid'); document.getElementById('modalDateLabel').style.display = 'block';
             container.innerHTML = `
@@ -709,8 +974,10 @@
                 <label class="input-label profit-label">Profit Target (₹)</label><input type="number" id="settingsProfitTargetInput" class="form-control" placeholder="0">
             `;
         }
-        renderSettingsCalendar(); 
-        loadTargetForSelection(); 
+        if(currentView !== 'item') {
+            renderSettingsCalendar(); 
+            loadTargetForSelection(); 
+        }
         document.getElementById('settingsModal').classList.add('open');
     };
 
@@ -718,29 +985,34 @@
         if(currentView === 'department') {
             ['FOOD', 'NON FOOD', 'REPACK'].forEach(dept => {
                 const key = `${currentContext}_${dept}_${calSelectedMonthStr}`;
-                const val = getStoredTarget(key);
+                const val = getStoredTargetRaw(key);
                 const el = document.getElementById(`input_${dept}`); 
                 if(el) el.value = val || '';
             });
-        } else {
-            document.getElementById('settingsSelectedDateDisplay').innerText = calSelectedDateStr;
-            const keys = getTargetKeys(calSelectedDateStr);
+        } else if (currentView !== 'item') {
             const sEl = document.getElementById('settingsTargetInput'); 
             const pEl = document.getElementById('settingsProfitTargetInput');
-            if(sEl) sEl.value = getStoredTarget(keys.sales) || ''; 
-            if(pEl) pEl.value = getStoredTarget(keys.profit) || '';
+            
+            if (settingsMode === 'weekly') {
+                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                document.getElementById('settingsSelectedDateDisplay').innerText = "Every " + days[selectedDayIndex];
+                sEl.value = getStoredTargetRaw(`weekly_${currentContext}_${selectedDayIndex}`) || '';
+                pEl.value = getStoredTargetRaw(`weekly_${currentContext}_profit_${selectedDayIndex}`) || '';
+            } else {
+                document.getElementById('settingsSelectedDateDisplay').innerText = calSelectedDateStr;
+                sEl.value = getStoredTargetRaw(`${currentContext}_${calSelectedDateStr}`) || '';
+                pEl.value = getStoredTargetRaw(`${currentContext}_profit_${calSelectedDateStr}`) || '';
+            }
         }
         document.getElementById('saveFeedback').style.opacity = '0';
     };
 
-    // --- RE-BINDING REMAINING UI FUNCTIONS ---
     window.changeGlobalMonth = (step) => { dashboardMonth.setMonth(dashboardMonth.getMonth() + step); updateMonthlyLabel(); updateUI(); };
     window.changeMonth = (step) => { calCurrentDate.setMonth(calCurrentDate.getMonth() + step); if(currentView === 'department') { calSelectedMonthStr = `${calCurrentDate.getFullYear()}-${String(calCurrentDate.getMonth()+1).padStart(2,'0')}`; loadTargetForSelection(); } renderSettingsCalendar(); };
     window.changeDashMonth = (step) => { dashCalCurrentDate.setMonth(dashCalCurrentDate.getMonth() + step); renderDashboardCalendar(); };
     window.toggleDashboardCalendar = () => { const popover = document.getElementById('dashboardCalendarPopover'); if(popover.classList.contains('active')) popover.classList.remove('active'); else { dashCalCurrentDate = new Date(dashboardDate); renderDashboardCalendar(); popover.classList.add('active'); } };
     window.closeSettingsModal = () => document.getElementById('settingsModal').classList.remove('open');
 
-    // --- RENDER FUNCTIONS (UNMODIFIED FROM ORIGINAL) ---
     function renderStats(suffix, achieved, target) {
         document.getElementById(`achieved_${suffix}`).innerText = formatCurrency(achieved);
         document.getElementById(`target_${suffix}`).innerText = formatCurrency(target);
@@ -781,9 +1053,8 @@
             const dayDiv = document.createElement('div'); const cellDateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
             dayDiv.className = "cal-date"; dayDiv.innerText = i;
             if(cellDateStr === dashboardDate) dayDiv.classList.add('selected');
-            const keys = getTargetKeys(cellDateStr);
-            const target = getStoredTarget(keys.sales);
             const metrics = getMetrics(cellDateStr);
+            const target = getStoredTarget(currentContext, cellDateStr, 'sales');
             if(target > 0) {
                 const dot = document.createElement('div'); dot.className = "has-target-dot"; dayDiv.appendChild(dot);
                 const percent = (metrics.sales / target) * 100;
@@ -805,8 +1076,7 @@
             const dayDiv = document.createElement('div'); const cellDateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
             dayDiv.className = "cal-date"; dayDiv.innerText = i;
             if(cellDateStr === calSelectedDateStr) dayDiv.classList.add('selected');
-            const keys = getTargetKeys(cellDateStr);
-            if(getStoredTarget(keys.sales) || getStoredTarget(keys.profit)) { const dot = document.createElement('div'); dot.className = "has-target-dot"; dayDiv.appendChild(dot); }
+            if(getStoredTargetRaw(`${currentContext}_${cellDateStr}`) || getStoredTargetRaw(`${currentContext}_profit_${cellDateStr}`)) { const dot = document.createElement('div'); dot.className = "has-target-dot"; dayDiv.appendChild(dot); }
             dayDiv.onclick = () => { calSelectedDateStr = cellDateStr; renderSettingsCalendar(); loadTargetForSelection(); };
             container.appendChild(dayDiv);
         }
