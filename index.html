@@ -993,6 +993,10 @@
             const sEl = document.getElementById('settingsTargetInput'); 
             const pEl = document.getElementById('settingsProfitTargetInput');
             
+            // --- FIX START: Add this safety check ---
+            if (!sEl || !pEl) return;
+            // --- FIX END ---
+
             if (settingsMode === 'weekly') {
                 const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                 document.getElementById('settingsSelectedDateDisplay').innerText = "Every " + days[selectedDayIndex];
@@ -1004,7 +1008,9 @@
                 pEl.value = getStoredTargetRaw(`${currentContext}_profit_${calSelectedDateStr}`) || '';
             }
         }
-        document.getElementById('saveFeedback').style.opacity = '0';
+        
+        const fb = document.getElementById('saveFeedback');
+        if(fb) fb.style.opacity = '0';
     };
 
     window.changeGlobalMonth = (step) => { dashboardMonth.setMonth(dashboardMonth.getMonth() + step); updateMonthlyLabel(); updateUI(); };
