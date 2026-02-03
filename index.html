@@ -93,10 +93,55 @@
             display: inline-flex; position: relative; margin-bottom: 25px;
             box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
         }
+        /* --- FIX FOR MAIN DASHBOARD TOGGLE --- */
+.toggle-container-block .toggle-wrapper {
+    display: flex;
+    width: 360px; /* Give it enough width for 3 names */
+    height: 45px; /* Make it slightly taller */
+    margin-top: 10px;
+}
+
+/* Force the sliding background to be 1/3rd width (since there are 3 items) */
+.toggle-container-block .toggle-bg {
+    width: 33.33% !important; 
+}
+/* --- FINAL TOGGLE FIXES --- */
+
+/* 1. Fix for Main Dashboard Toggle (3 Items) */
+/* Calculates exactly 1/3rd minus the padding space */
+.toggle-container-block .toggle-bg {
+    width: calc((100% - 8px) / 3) !important; 
+}
+
+/* 2. Fix for Monthly Header Toggle (2 Items) */
+/* Calculates exactly 1/2 minus the padding space */
+#monthlyControls .toggle-bg {
+    width: calc(50% - 4px) !important;
+}
+
+/* Ensure the text sits on top of the background */
+.toggle-option {
+    z-index: 2;
+}
         .toggle-option {
-            position: relative; z-index: 1; padding: 8px 32px;
-            font-size: 0.9rem; font-weight: 500; color: #444; cursor: pointer;
-            transition: color 0.2s; text-align: center; min-width: 100px;
+            position: relative; 
+            z-index: 1; 
+            padding: 0; /* Remove padding, let flexbox center it */
+            font-size: 0.85rem; 
+            font-weight: 500; 
+            color: #444; 
+            cursor: pointer;
+            transition: color 0.2s; 
+            text-align: center; 
+            min-width: 0; /* Allow shrinking if needed */
+            flex: 1;      /* Take equal space */
+            
+            /* --- NEW PROPERTIES TO FIX LAYOUT --- */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap; /* Prevents text from breaking into two lines */
+            height: 100%;
         }
         .toggle-option.active { color: #000; }
         .toggle-bg {
@@ -332,9 +377,17 @@
                     </button>
                 </div>
 
-                <!-- MONTHLY CONTROLS -->
+                <!-- MONTHLY CONTROLS (Updated with Toggle) -->
                 <div id="monthlyControls" class="controls-group">
-                    <div class="month-nav-simple" style="flex:1; justify-content:space-between;">
+                    <!-- Toggle moved here, compacted style -->
+                    <div class="toggle-wrapper" style="margin:0; width: 180px; height: 44px; transform: scale(0.9);">
+                        <!-- Default set to Right side (Till Date) -->
+                        <div class="toggle-bg" id="monthlyToggleBg" style="width:50%; transform: translateX(100%);"></div>
+                        <div class="toggle-option" id="mt-full" onclick="setMonthlyMode('full')">Full Month</div>
+                        <div class="toggle-option active" id="mt-pacing" onclick="setMonthlyMode('pacing')">Till Date</div>
+                    </div>
+
+                    <div class="month-nav-simple" style="flex:1; justify-content:space-between; min-width: 200px;">
                         <button class="mns-btn" onclick="changeGlobalMonth(-1)"><span class="material-symbols-rounded">chevron_left</span></button>
                         <div class="mns-label" id="monthlyLabel">Month Year</div>
                         <button class="mns-btn" onclick="changeGlobalMonth(1)"><span class="material-symbols-rounded">chevron_right</span></button>
@@ -353,7 +406,7 @@
                     </button>
                 </div>
 
-                <!-- ITEM CONTROLS (Placeholder) -->
+                <!-- ITEM CONTROLS -->
                 <div id="itemControls" class="controls-group">
                     <button class="icon-btn" onclick="openSettingsModal()" title="Item Settings">
                         <span class="material-symbols-rounded">settings</span>
@@ -408,7 +461,7 @@
         </div>
 
         <div id="view-monthly" class="view-section">
-            <div class="section-title">Monthly Sales</div>
+            <div class="section-title">Sales Performance</div>
             <div class="dashboard-row">
                 <div class="card ring-card">
                     <div class="progress-container">
@@ -419,12 +472,16 @@
                 <div class="card">
                     <div class="stats-grid">
                         <div class="stat-box"><div class="stat-label">Sales Achieved</div><div class="stat-value blue" id="achieved_monthly_sales">₹0</div></div>
-                        <div class="stat-box"><div class="stat-label">Cumulative Target</div><div class="stat-value" id="target_monthly_sales">₹0</div></div>
+                        <div class="stat-box">
+                            <div class="stat-label" id="label_target_monthly_sales">Target (Till Date)</div>
+                            <div class="stat-value" id="target_monthly_sales">₹0</div>
+                        </div>
                         <div class="stat-box"><div class="stat-label">Balance</div><div class="stat-value" id="balance_monthly_sales">₹0</div></div>
                     </div>
                 </div>
             </div>
-            <div class="section-title">Monthly Profit</div>
+
+            <div class="section-title">Profit Performance</div>
             <div class="dashboard-row">
                 <div class="card ring-card">
                     <div class="progress-container">
@@ -435,7 +492,10 @@
                 <div class="card">
                     <div class="stats-grid">
                         <div class="stat-box"><div class="stat-label">Profit Earned</div><div class="stat-value purple" id="achieved_monthly_profit">₹0</div></div>
-                        <div class="stat-box"><div class="stat-label">Cumulative Target</div><div class="stat-value" id="target_monthly_profit">₹0</div></div>
+                        <div class="stat-box">
+                            <div class="stat-label" id="label_target_monthly_profit">Target (Till Date)</div>
+                            <div class="stat-value" id="target_monthly_profit">₹0</div>
+                        </div>
                         <div class="stat-box"><div class="stat-label">Balance</div><div class="stat-value" id="balance_monthly_profit">₹0</div></div>
                     </div>
                 </div>
@@ -851,10 +911,35 @@
         renderStats('daily_profit', metrics.profit, pTarget);
     }
 
-    function updateMonthlyView() {
+    // --- ADD THIS VARIABLE AT THE TOP ---
+    let monthlyMode = 'pacing'; // 'full' or 'pacing'
+
+    // --- ADD THIS NEW FUNCTION ---
+    window.setMonthlyMode = function(mode) {
+        monthlyMode = mode;
+        // Visual toggle update
+        document.getElementById('mt-full').classList.remove('active');
+        document.getElementById('mt-pacing').classList.remove('active');
+        document.getElementById(`mt-${mode}`).classList.add('active');
+        document.getElementById('monthlyToggleBg').style.transform = mode === 'full' ? 'translateX(0)' : 'translateX(100%)';
+        
+        // Update labels
+        const label = mode === 'full' ? "Total Target" : "Target (Till Date)";
+        document.getElementById('label_target_monthly_sales').innerText = label;
+        document.getElementById('label_target_monthly_profit').innerText = label;
+
+        updateMonthlyView();
+    };
+
+        function updateMonthlyView() {
         const totals = getMonthlyTotals();
-        renderStats('monthly_sales', totals.sales, totals.sTarget);
-        renderStats('monthly_profit', totals.profit, totals.pTarget);
+        
+        // Decide which numbers to show based on Toggle
+        const sTarget = monthlyMode === 'full' ? totals.sTarget : totals.sTargetTillDate;
+        const pTarget = monthlyMode === 'full' ? totals.pTarget : totals.pTargetTillDate;
+
+        renderStats('monthly_sales', totals.sales, sTarget);
+        renderStats('monthly_profit', totals.profit, pTarget);
     }
 
     function updateDepartmentView() {
@@ -871,29 +956,54 @@
         });
     }
 
-    function getMonthlyTotals(dept = null, isDeptView = false) {
-        const year = dashboardMonth.getFullYear(); const month = dashboardMonth.getMonth();
+         function getMonthlyTotals(dept = null, isDeptView = false) {
+        const year = dashboardMonth.getFullYear(); 
+        const month = dashboardMonth.getMonth();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const monthStr = `${year}-${String(month+1).padStart(2, '0')}`;
-        let agg = { sales: 0, profit: 0, sTarget: 0, pTarget: 0 };
+        
+        // Pacing Logic Setup
+        const todayObj = new Date();
+        const isCurrentMonth = (todayObj.getFullYear() === year && todayObj.getMonth() === month);
+        const currentDay = todayObj.getDate();
+
+        let agg = { sales: 0, profit: 0, sTarget: 0, pTarget: 0, sTargetTillDate: 0, pTargetTillDate: 0 };
         
         if(isDeptView) {
             agg.sTarget = getStoredTargetRaw(`${currentContext}_${dept}_${monthStr}`);
         }
+
         for(let i=1; i<=daysInMonth; i++) {
             const dayStr = `${year}-${String(month+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
             const m = getMetrics(dayStr, dept);
-            agg.sales += m.sales; agg.profit += m.profit;
+            agg.sales += m.sales; 
+            agg.profit += m.profit;
+            
             if(!isDeptView) {
-                agg.sTarget += getStoredTarget(currentContext, dayStr, 'sales');
-                agg.pTarget += getStoredTarget(currentContext, dayStr, 'profit');
+                const sDaily = getStoredTarget(currentContext, dayStr, 'sales');
+                const pDaily = getStoredTarget(currentContext, dayStr, 'profit');
+                
+                // Full Month Total
+                agg.sTarget += sDaily;
+                agg.pTarget += pDaily;
+
+                // Till Date Total
+                if (todayObj > new Date(year, month + 1, 0)) {
+                    // Past Month: Include everything
+                    agg.sTargetTillDate += sDaily;
+                    agg.pTargetTillDate += pDaily;
+                } else if (isCurrentMonth && i <= currentDay) {
+                    // Current Month: Include only up to today
+                    agg.sTargetTillDate += sDaily;
+                    agg.pTargetTillDate += pDaily;
+                }
             }
         }
         return agg;
     }
 
     window.getMetrics = function(date, dept = null) {
-        let filtered = rawData.filter(r => r.date === date && r.amount > 0);
+        let filtered = rawData.filter(r => r.date === date && r.amount !== 0);
         if(currentContext !== 'STORE') filtered = filtered.filter(r => r.ORDER_TAKEN_BY === currentContext);
         if(dept) filtered = filtered.filter(r => r.DEPTNAME === dept);
         const sales = filtered.reduce((sum, r) => sum + r.amount, 0);
@@ -993,24 +1103,21 @@
             const sEl = document.getElementById('settingsTargetInput'); 
             const pEl = document.getElementById('settingsProfitTargetInput');
             
-            // --- FIX START: Add this safety check ---
-            if (!sEl || !pEl) return;
-            // --- FIX END ---
-
-            if (settingsMode === 'weekly') {
-                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                document.getElementById('settingsSelectedDateDisplay').innerText = "Every " + days[selectedDayIndex];
-                sEl.value = getStoredTargetRaw(`weekly_${currentContext}_${selectedDayIndex}`) || '';
-                pEl.value = getStoredTargetRaw(`weekly_${currentContext}_profit_${selectedDayIndex}`) || '';
-            } else {
-                document.getElementById('settingsSelectedDateDisplay').innerText = calSelectedDateStr;
-                sEl.value = getStoredTargetRaw(`${currentContext}_${calSelectedDateStr}`) || '';
-                pEl.value = getStoredTargetRaw(`${currentContext}_profit_${calSelectedDateStr}`) || '';
+            // --- SAFETY CHECK ADDED HERE ---
+            if (sEl && pEl) {
+                if (settingsMode === 'weekly') {
+                    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                    document.getElementById('settingsSelectedDateDisplay').innerText = "Every " + days[selectedDayIndex];
+                    sEl.value = getStoredTargetRaw(`weekly_${currentContext}_${selectedDayIndex}`) || '';
+                    pEl.value = getStoredTargetRaw(`weekly_${currentContext}_profit_${selectedDayIndex}`) || '';
+                } else {
+                    document.getElementById('settingsSelectedDateDisplay').innerText = calSelectedDateStr;
+                    sEl.value = getStoredTargetRaw(`${currentContext}_${calSelectedDateStr}`) || '';
+                    pEl.value = getStoredTargetRaw(`${currentContext}_profit_${calSelectedDateStr}`) || '';
+                }
             }
         }
-        
-        const fb = document.getElementById('saveFeedback');
-        if(fb) fb.style.opacity = '0';
+        document.getElementById('saveFeedback').style.opacity = '0';
     };
 
     window.changeGlobalMonth = (step) => { dashboardMonth.setMonth(dashboardMonth.getMonth() + step); updateMonthlyLabel(); updateUI(); };
